@@ -2,7 +2,9 @@
 
 ![Embeddings for the footbal matches dataset](figures/football_communities.png)
 
-This repository contains the code accompanying the paper "Weighted Random Dot Product Graphs" (B. Marenco, P. Bermolen, M. Fiori, F. Larroca and G. Mateos, soon to be on arXiv). It includes implementations of the methods and experiments described in the paper, including the proposed Weighted RDPG model (built upon [Graspologic’s implementation of the standard RDPG](https://github.com/graspologic-org/graspologic/blob/main/graspologic/models/rdpg.py)) and the novel primal-dual optimization approach for maximum entropy inference under moment constraints.
+This repository contains the code accompanying the paper **"Weighted Random Dot Product Graphs"** (B. Marenco, P. Bermolen, M. Fiori, F. Larroca and G. Mateos, soon to be on arXiv).
+
+It includes implementations of the methods and experiments described in the paper, including the proposed Weighted RDPG model (built upon [Graspologic’s implementation of the standard RDPG](https://github.com/graspologic-org/graspologic/blob/main/graspologic/models/rdpg.py)) and the novel primal-dual optimization approach for maximum entropy inference under moment constraints.
 
 ## Installation
 
@@ -24,7 +26,13 @@ pip install -r requirements.txt
 
 ## Usage
 
-To generate **Figure 7** from the paper, run:
+To generate **Figures 3,4 and 5** from the paper, run:
+
+```bash
+python wrdpg_examples.py
+```
+
+To generate **Figure 7** , run:
 
 ```bash
 python wrdpg_discrete_distribution_generation.py
