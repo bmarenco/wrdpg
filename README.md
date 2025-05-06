@@ -10,8 +10,8 @@ To reproduce the main results from the paper, follow the instructions below:
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/your-repo-name.git
-cd your-repo-name
+git clone https://github.com/bmarenco/wrdpg.git
+cd wrdpg
 
 # (Optional) Create and activate a virtual environment
 python -m venv venv
