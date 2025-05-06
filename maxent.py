@@ -175,16 +175,19 @@ def dual_objective_log_domain(lambdas, target_moments, x_vals, w_vals, reg_stren
     log_integral = log_integral_function(lambdas, x_vals, w_vals)
     return np.dot(lambdas, target_moments) + log_integral - np.log(target_moments[0])+ reg_strength*np.square(np.linalg.norm(lambdas))
 
-def dual_function_and_grad(lambdas, target_moments, x_vals, w_vals, vander_mat, reg_strength=0.0):
+def dual_function_and_grad(lambdas, target_moments, x_vals, w_vals, reg_strength=0.0):
     est_moments = compute_moments(lambdas, len(lambdas)-1, x_vals=x_vals, w_vals=w_vals)
     grad = target_moments - est_moments + 2*reg_strength*lambdas
     dual_function = dual_objective_log_domain(lambdas, target_moments, x_vals, w_vals) + reg_strength*np.square(np.linalg.norm(lambdas))
 
     return dual_function, grad
 
-def solve_dual_continuous_log(moment_vector, Omega, n_leggauss=200, reg_strength=0.0, verbose=False):
+def solve_dual_continuous_log(moment_vector, Omega, n_leggauss=200, reg_strength=0.0, verbose=False, lambdas0=None):
     """Solve the dual optimization problem in log-domain using BFGS."""
-    lambdas0 = np.zeros_like(moment_vector)
+    
+    if lambdas0 is None:
+        lambdas0 = np.zeros_like(moment_vector)
+        
     # Gauss-Legendre quadrature points and weights over [-1, 1]
     nodes, weights = leggauss(n_leggauss)
 
@@ -193,14 +196,16 @@ def solve_dual_continuous_log(moment_vector, Omega, n_leggauss=200, reg_strength
     x_vals = 0.5 * (nodes + 1) * (b - a) + a
     w_vals = 0.5 * (b - a) * weights
     
-    vander_mat = np.vander(x_vals,N=len(moment_vector), increasing=True)
-    
     result = minimize(dual_function_and_grad,
                       lambdas0,
-                      args=(moment_vector,x_vals, w_vals, vander_mat, reg_strength),
+                      args=(moment_vector,x_vals, w_vals, reg_strength),
                       jac = True,
                       method='BFGS',
                       options={'gtol': 1e-4, 'xrtol':1e-8, 'disp':verbose})
+    
+    # Correct lambda_0 since solution uses log-transform
+    log_int = log_integral_function(result.x, x_vals, w_vals)
+    result.x[0] = result.x[0]+log_int
     
     if (not result.success) and verbose:
         warnings.warn(f'Dual function minimization did not converge - Message: {result.message}', RuntimeWarning)
