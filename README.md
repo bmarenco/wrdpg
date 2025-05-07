@@ -4,7 +4,7 @@
 
 This repository contains the code accompanying the paper [**"Weighted Random Dot Product Graphs"**](https://arxiv.org/abs/2505.03649) by B. Marenco, P. Bermolen, M. Fiori, F. Larroca and G. Mateos
 
-It includes implementations of the methods and experiments described in the paper, including the proposed Weighted RDPG model (built upon [Graspologic’s implementation of the standard RDPG](https://github.com/graspologic-org/graspologic/blob/main/graspologic/models/rdpg.py)) and the novel primal-dual optimization approach for maximum entropy inference under moment constraints.
+It includes implementations of the methods and experiments described in the paper, including the proposed Weighted RDPG model (built upon [Graspologic’s implementation of the standard RDPG](https://github.com/graspologic-org/graspologic/blob/main/graspologic/models/rdpg.py)) and the primal-dual optimization approach for maximum entropy inference under moment constraints.
 
 ## Installation
 
@@ -26,10 +26,16 @@ pip install -r requirements.txt
 
 ## Usage
 
-To generate **Figures 3,4 and 5** from the paper, run:
+To generate **Figures 3, 4 and 5** from the paper, run:
 
 ```bash
 python wrdpg_examples.py
+```
+
+To generate **Figure 6** , run:
+
+```bash
+python moment_inference_example.py
 ```
 
 To generate **Figure 7** , run:
@@ -43,7 +49,7 @@ To generate **Figure 8**, run:
 python wrdpg_continuous_distribution_generation.py
 ```
 
-To generate **Figures 9, 10, and 11**, first modify the `football_data_dir` parameter in `football_discrete_distribution.py` to point to a valid path on your system, then run:
+To generate **Figures 9, 10 and 11**, first modify the `football_data_dir` parameter in `football_discrete_distribution.py` to point to a valid path on your system, then run:
 
 ```bash
 python football_discrete_distribution.py
