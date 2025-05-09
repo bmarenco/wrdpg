@@ -4,12 +4,15 @@ Created on Jul 28, 2023
 @author: bernardo
 '''
 
-import numpy as np
-from graspologic.simulations import er_np, sbm
 from graspologic.embed import AdjacencySpectralEmbed as ASE
+from graspologic.simulations import er_np, sbm
+from scipy.stats import chi2
+
 import matplotlib.pyplot as plt
-from utils.moments_utils import normal_moments
+import numpy as np
 from utils.embedding_utils import align_Xs
+from utils.moments_utils import normal_moments, poisson_moments
+
 
 plt.close(fig='all')
 plt.rcParams['lines.linewidth'] = 3
@@ -179,17 +182,79 @@ for k in np.arange(1,max_k+1):
     rotated_Xhat = align_Xs(Xhat, X)
     Xhats_sbm.append(rotated_Xhat)
 
-    
+color_list = ['maroon', 'royalblue']
 fig, axs = plt.subplots(figsize=(18,6),nrows=1, ncols=3, layout='constrained')
 axs = axs.flatten() 
-colors = n[0]*['maroon'] + n[1]*['royalblue']
+colors = n[0]*[color_list[0]] + n[1]*[color_list[1]]
 
 for idx, ax in enumerate(axs):
     ax.scatter(Xhats_sbm[idx][:,0],Xhats_sbm[idx][:,1],c=colors,alpha=0.3)
     ax.scatter(X_seq[idx][:,0],X_seq[idx][:,1],c='black',marker='x')
     ax.set_title(f'$\hat{{\mathbf{{X}}}}[{idx+1}]$')
 
+# Plot 95% confidence levels for limiting gaussians
+conf_level = 0.95
+
+# Parametrize the unit circle
+theta = np.linspace(0, 2 * np.pi, 200)
+circle = np.stack((np.cos(theta), np.sin(theta)))  # shape (2, N)
+
+# Probabilities of belonging to each sbm block
+pi_1 = ratio
+pi_2 = 1-pi_1
+
+
+# Compute the squared Mahalanobis radius (quantile of chi-squared with 2 dof)
+r2 = chi2.ppf(conf_level, df=2)
+r = np.sqrt(r2)
+
+for idx,X in enumerate(X_seq):
+    means = [X_seq[idx][0,:],X_seq[idx][1,:]]
+    
+    outer_block1 = np.outer(means[0],means[0])
+    outer_block2 = np.outer(means[1],means[1])
+
+    delta_k = p*(pi_1*outer_block1 + pi_2*outer_block2)
+    delta_inv = np.linalg.inv(delta_k)
+    
+    if idx==0:
+        cov1 = p*delta_inv@(pi_1*outer_block1+pi_2*outer_block2)@delta_inv
+        mu_hat = p*moments_normal[1]
+        cov1 = cov1*(p*mu_hat**2*(1-p)+sigma_sq)
+        
+        lam_hat = p*moments_poisson[1]
+        
+        cov2 = p*delta_inv@(pi_1*(p*mu_hat**2*(1-p)+sigma_sq)*outer_block1+
+                            pi_2*p*lam_hat*(lam_hat*(1-p)+1)*outer_block2)@delta_inv
+                            
+    else:
+        E_k_normal = moments_normal[idx+1]
+        E_2k_normal = normal_moments(mu, sigma, 2*(idx+1))[-1]
+        cov1 = delta_inv@(pi_1*outer_block1+pi_2*outer_block2)@delta_inv
+        
+        cov1 = p*(p*E_2k_normal-np.square(p*E_k_normal))*cov1 
+        
+        E_k_poisson = moments_poisson[idx+1]
+        E_2k_poisson = poisson_moments(lam, 2*(idx+1))[-1]
+        
+        cov2 = pi_1*(p*E_2k_normal-np.square(p*E_k_normal))*outer_block1
+        cov2 += pi_2*(p*E_2k_poisson-np.square(p*E_k_poisson))*outer_block2
+        
+        cov2 = p*delta_inv@cov2@delta_inv
+    
+    cov1 = cov1/N
+    cov2 = cov2/N
+    
+    cov1_sample = np.cov(Xhats_sbm[idx][:n[0],:].T)
+    cov2_sample = np.cov(Xhats_sbm[idx][n[0]:,:].T)
+    
+    covs = [cov1,cov2]
+    
+    for comm, (mean,cov) in enumerate(zip(means,covs)):
+        # Cholesky decomposition for transforming the unit circle
+        L = np.linalg.cholesky(cov)
+        ellipsoid = mean[:, None] + r * L @ circle
+        
+        axs[idx].plot(ellipsoid[0], ellipsoid[1], color=color_list[comm], linestyle='dashed')
+        
 plt.show()
-
-
-
