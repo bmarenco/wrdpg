@@ -10,7 +10,14 @@ from tqdm import tqdm
 import pandas as pd
 import networkx as nx
 import pycountry_convert as pc
-from .flights_dataset_utils import continents_colors
+
+continents_colors = {'North America': 'yellow',
+                     'South America': 'forestgreen',
+                     'Europe': 'royalblue',
+                     'Africa': 'plum',
+                     'Asia': 'darkorange',
+                     'Oceania': 'firebrick',
+                     'N/A': 'black'}
 
 def load_football_dataset(football_data_path, initial_year=1872, final_year=2024, weighted=True):    
     if os.path.isdir(os.path.dirname(football_data_path)):
