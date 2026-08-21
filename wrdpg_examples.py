@@ -5,6 +5,8 @@ Created on Jul 28, 2023
 '''
 
 from graspologic.embed import AdjacencySpectralEmbed as ASE
+from graspologic.embed import OmnibusEmbed
+from graspologic.embed import MultipleASE as MASE
 from graspologic.simulations import er_np, sbm
 from scipy.stats import chi2, norm
 
@@ -238,7 +240,6 @@ for idx, ax in enumerate(axs):
     ax.scatter(X_seq[idx][:,0],X_seq[idx][:,1],c='black',marker='x')
     ax.set_title(f'$\hat{{\mathbf{{X}}}}[{idx+1}]$')
 
-
 # Probabilities of belonging to each sbm block
 pi_1 = ratio
 pi_2 = 1-pi_1
@@ -278,5 +279,27 @@ for idx,X in enumerate(X_seq):
         ellipsoid = mean[:, None] + r * L @ circle
         
         axs[idx].plot(ellipsoid[0], ellipsoid[1], color='black', linestyle='dashed')
-        
+
+# Omnibus embedding
+omnibus = OmnibusEmbed(n_components=2, diag_aug=True, algorithm='truncated')
+graphs = [np.power(sbm_graph,k) for k in np.arange(1,K+1)]
+Zhats = omnibus.fit_transform(graphs)
+
+fig_omnibus, ax_omnibus = plt.subplots(figsize=(10,10),nrows=1, ncols=1, layout='constrained')
+markers = ['o','s','X']
+for idx,Zhat in  enumerate(Zhats):
+    ax_omnibus.scatter(Zhat[:,0],Zhat[:,1],c=colors,alpha=0.9, s=100,
+                       marker = markers[idx], label=f'Embeddings for $\mathbf{{A}}^{{({idx+1})}}$')
+fig_omnibus.suptitle(f'Omnibus embedding')
+ax_omnibus.legend()
+
+# MASE embeddings
+mase = MASE(n_components=2, diag_aug=True, algorithm='truncated')
+Vhat = mase.fit_transform(graphs)
+
+fig_mase, ax_mase = plt.subplots(figsize=(10,10),nrows=1, ncols=1, layout='constrained')
+markers = ['o','s','X']
+ax_mase.scatter(Vhat[:,0],Vhat[:,1],c=colors,alpha=0.3)
+fig_mase.suptitle('MASE')
+
 plt.show()
