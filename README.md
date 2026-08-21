@@ -35,7 +35,7 @@ python wrdpg_examples.py
 To generate **Figure 6**, run:
 
 ```bash
-python moment_inference_example.py
+python moment_inference_examples.py
 ```
 
 To generate **Figure 7**, run:
